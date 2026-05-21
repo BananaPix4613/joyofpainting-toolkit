@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jop-toolkit"
+version = "0.1.0"
+description = "Standalone desktop assistant for the Joy of Painting Minecraft mod."
+requires-python = ">=3.10"
+dependencies = [
+    "PyQt6>=6.6",
+    "Pillow>=10.0",
+    "numpy>=1.24",
+    "scipy>=1.10",
+]
+
+[project.optional-dependencies]
+dev = ["pyinstaller>=6.0"]
+
+[project.scripts]
+jop-toolkit = "jop_toolkit.app:main"
+
+[tool.setuptools.packages.find]
+include = ["jop_toolkit*"]
