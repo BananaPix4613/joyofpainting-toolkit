@@ -8,11 +8,18 @@ def load_image(path):
     return Image.open(path).convert('RGB')
 
 
-def downscale(img, target_size):
-    """Resize a PIL.Image to target_size = (W, H) using high-quality Lanczos."""
+def downscale(img, target_size, resample=None):
+    """Resize a PIL.Image to target_size = (W, H).
+    
+    Defaults to Lanczos for back-compat, but BOX (area average) is usually the
+    better choice for a pixel-art target: Lanczos overshoots at edges and
+    invents colors that are in neither neighboring region.
+    """
+    if resample is None:
+        resample = Image.LANCZOS
     if img.size == tuple(target_size):
         return img
-    return img.resize(tuple(target_size), Image.LANCZOS)
+    return img.resize(tuple(target_size), resample)
 
 
 def smear_pad(arr, margin):
@@ -56,15 +63,8 @@ def pad_to_multiple(arr, mult=16):
 
 def hex_grid_to_rgb(hex_grid, palette):
     """Convert a 2D object array of hex strings into an (H, W, 3) uint8 RGB array."""
-    h, w = hex_grid.shape
-    out = np.zeros((h, w, 3), dtype=np.uint8)
-    cache = {}
-    for y in range(h):
-        for x in range(w):
-            hx = hex_grid[y, x]
-            rgb = cache.get(hx)
-            if rgb is None:
-                rgb = palette[hx]
-                cache[hx] = rgb
-            out[y, x] = rgb
-    return out
+    keys = np.array(list(palette.keys()), dtype=object)
+    vals = np.array(list(palette.values()), dtype=np.uint8)
+    order = {h: i for i, h in enumerate(keys.tolist())}
+    idx = np.array([order[h] for h in hex_grid.reshape(-1).tolist()], dtype=np.int64)
+    return vals[idx].reshape(hex_grid.shape + (3,))

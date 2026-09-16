@@ -1,4 +1,4 @@
-"""Stage 3: Paint — active canvas view + mini overview + palette list."""
+"""Stage 3: Paint - active canvas view + mini overview + palette list."""
 
 from PyQt6.QtCore import Qt, QRectF, pyqtSignal
 from PyQt6.QtGui import QColor, QPen, QBrush

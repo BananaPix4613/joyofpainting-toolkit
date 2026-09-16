@@ -109,16 +109,9 @@ class LayoutStage(QWidget):
         # Pad processed image to multiples of 16 so layouts cover everything.
         padded = preprocess.pad_to_multiple(self.state.processed_image, 16)
         self._padded_size = (padded.shape[1], padded.shape[0])  # (W, H)
-        # Also re-pad the matched grid so finalize step can slice with the layout.
-        h, w = self.state.matched_hex_grid.shape
-        pad_h = (-h) % 16
-        pad_w = (-w) % 16
-        if pad_h or pad_w:
-            grid = np.pad(self.state.matched_hex_grid,
-                          ((0, pad_h), (0, pad_w)), mode='edge')
-        else:
-            grid = self.state.matched_hex_grid
-        self.state.matched_hex_grid = grid
+        # The indexed grid must match, or slice_tiles walks off the end.
+        if self.state.indexed is not None:
+            self.state.indexed.pad_to_multiple(16)
         self.state.processed_image = padded
         self.view.set_image(padded, fit=True)
 
@@ -255,9 +248,9 @@ class LayoutStage(QWidget):
             QMessageBox.warning(self, "No canvases", "Add at least one canvas first.")
             return False
         from ..core.sidecar import slice_tiles, build_palette_entries
-        self.state.tiles = slice_tiles(self.state.matched_hex_grid, self.state.layout)
+        self.state.tiles = slice_tiles(self.state.indexed, self.state.layout)
         self.state.palette_entries = build_palette_entries(
-            self.state.tiles, self.state.palette, self.state.recipes)
+            self.state.indexed, self.state.tiles)
         self.state.active_tile_index = 0
         self.state.active_color_hex = (
             self.state.palette_entries[0]['hex'] if self.state.palette_entries else None)

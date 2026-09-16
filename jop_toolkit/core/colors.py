@@ -34,10 +34,17 @@ def color_distance(a, b):
 
 
 def mix_colors(colors):
+    """Mix dye colors exactly as the mod does.
+
+    xercapaint's PaletteUtil.CustomColor.calculateResult computes
+        int gainFactor = averageMaximum / maximumOfAverage;
+    in *integer* arithmetic. Across the 16 dyes that ratio peaks at 1.7485 and
+    never reaches 2.0, so the division always truncates to 1 and vanilla's
+    leather-armor gain correction never fires. What remains is the plain
+    per-channel mean, floored by Java's integer division.
+    """
+
     n = len(colors)
     if n == 0:
         return (0, 0, 0)
-    r = round(sum(c[0] for c in colors) / n)
-    g = round(sum(c[1] for c in colors) / n)
-    b = round(sum(c[2] for c in colors) / n)
-    return (r, g, b)
+    return tuple(sum(c[i] for c in colors) // n for i in range(3))
